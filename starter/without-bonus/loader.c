@@ -29,6 +29,33 @@ void load_and_run_elf(char** exe) {
   printf("User _start return value = %d\n",result);
 }
 
+
+int elfChecker(Elf32_Ehdr* header){
+ if(header == NULL) {
+   printf("NULL pointer to elf header\n");
+   return 0;
+ }
+ if(header->e_ident[EI_MAG0] != ELFMAG0){//checks if the value of the first byte of the ELF identification array(e_ident) is equal to 0x7f
+   printf("First Byte Incorrect\n");
+   return 0;
+ }
+ if(header->e_ident[EI_MAG1] != ELFMAG1){//second byte
+   printf("Second Byte Incorrect\n");
+   return 0;
+ }
+ if(header->e_ident[EI_MAG2] != ELFMAG2){//second byte
+   print("Second Byte Incorrect\n");
+   return 0;
+ }
+ if(header->e_ident[EI_MAG3] != ELFMAG3) {
+   print("Third Byte Incorrect\n");
+   return 0;
+ }
+ return 1;
+}
+
+
+
 int main(int argc, char** argv) 
 {
   if(argc != 2) {
