@@ -11,6 +11,6 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-
-void load_and_run_elf(char** exe);
+#include <sys/stat.h>
+void load_and_run_elf(char* exe);
 void loader_cleanup();
