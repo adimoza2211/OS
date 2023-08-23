@@ -7,7 +7,13 @@ all:
 	$(MAKE) -C test	
 	mkdir -p bin
 	mv launcher/launch bin/
-	mv test/fib bin
+	cp test/fib bin/fib
+
+run:
+	cd bin && ./launch ./fib && rm ./fib
+
+	
+
 clean:
 	$(MAKE) -C loader clean
 	$(MAKE) -C launcher clean

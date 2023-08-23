@@ -27,9 +27,17 @@ Aarya Khandelwal: The last three steps for the simple loader including loading e
 
 The inclusion of the makefiles of loader/launcher was done by both.
 
+Erros, Segmentation Faults were fixed by both 
+
 Link to private github repo:https://github.com/adimoza2211/OS.git
 
+STEPS TO RUN THE PROGRAM(in the with-bonus dir):
+make clean
+make
+make run
 
 
-
-
+STEPS TO RUN THE PROGRAM(in the without-bonus dir):
+make clean
+make 
+make run
