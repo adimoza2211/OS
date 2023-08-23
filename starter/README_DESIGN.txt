@@ -22,7 +22,7 @@ loader cleanup unmaps allocated memory at the end
 
 
 
-Link to private github repo:
+Link to private github repo:https://github.com/adimoza2211/OS.git
 
 
 
