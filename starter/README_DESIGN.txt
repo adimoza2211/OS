@@ -18,6 +18,7 @@ navigate to the entry point field of ehdr
 
 typecast and call _start()
 
+<<<<<<< HEAD
 loader cleanup unmaps allocated memory at the end
 
 
@@ -28,3 +29,28 @@ Link to private github repo:
 
 
 
+=======
+loader cleanup unmaps allocated memory at the end.
+
+Contributions:
+Aditya Moza: The first three steps for the simple loader including opening the file, iterating through the phdr and allocating p_memsz.
+
+Aarya Khandelwal: The last three steps for the simple loader including loading entry_point segment to the memory , typecasting the pointer to start type and calling _start function . 
+
+The inclusion of the makefiles of loader/launcher was done by both.
+
+Erros, Segmentation Faults were fixed by both 
+
+Link to private github repo:https://github.com/adimoza2211/OS.git
+
+STEPS TO RUN THE PROGRAM(in the with-bonus dir):
+make clean
+make
+make run
+
+
+STEPS TO RUN THE PROGRAM(in the without-bonus dir):
+make clean
+make 
+make run
+>>>>>>> f9ec0e22d94ec315702c506c2066922496b0982e
