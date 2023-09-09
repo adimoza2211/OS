@@ -1,0 +1,4 @@
+NO.      Command
+1.    ls    
+2.    ls /home    
+3.    exit    

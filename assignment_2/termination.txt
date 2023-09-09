@@ -1,0 +1,3 @@
+Command     Pid     Start Time      Duration:
+ls    34318     1694303464.000000     0.000000    
+ls /home    34318     1694303466.000000     0.000000    
