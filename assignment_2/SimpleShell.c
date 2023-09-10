@@ -1,21 +1,34 @@
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
+// #include <unistd.h>
+// #include <sys/wait.h>
+// #include <stdbool.h>
+// #include <time.h>
+// #include <signal.h>
+
+
+#include <string.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/wait.h>
-#include <stdbool.h>
+#include <errno.h>
 #include <time.h>
 #include <signal.h>
+#include <stdbool.h>
 
 #define MAX_INPUT_SIZE 1024
-
+volatile sig_atomic_t is_interrupted = 0;
 
 void exec_command(char *command)
 {   
 
-    pid_t pid=fork();
+    pid_t pid=fork();  //fork called. Child and Parent process created
     int status;
-    
+    // stores the pid, entry time, duration in termination.txt file.
     time_t start_time;
     time(&start_time);
     FILE *termination=fopen("termination.txt", "a");
@@ -25,16 +38,15 @@ void exec_command(char *command)
 
     if (pid < 0)
     {
-        printf("fork failed\n");
+        printf("fork failed\n"); //exits if fork failed
         exit(1);
     }
     else if (pid == 0)
-    {
-        
-        
+    {   
+        //child process called
         char *args[100];
         int i = 0;
-        char *token = strtok(command, " ");
+        char *token = strtok(command, " ");  
         while (token != NULL)
         {
             args[i] = token;
@@ -42,25 +54,26 @@ void exec_command(char *command)
             token = strtok(NULL, " ");
         }
         args[i] = NULL;
-        execvp(args[0], args);
-        perror("there was a failure in execvp");
+        execvp(args[0], args);  // the command is executed
+        perror("there was a failure in execvp");  //exits if exec fails
         exit(1);
     }
     else{
+        //parent process called 
         do {
-            waitpid(pid, &status, WUNTRACED);
+            waitpid(pid, &status, WUNTRACED);   //waits for the child to complete execution and terminate
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
         time_t end_time;
         time(&end_time);
         double difference = difftime(end_time, start_time);
         fprintf(termination, "%.3f    \n", (double)difference);
-        fclose(termination);
+        fclose(termination);  //closes termination.txt file
     }
 
 }
 
 
-bool isPiped(char* command)
+bool isPiped(char* command)   //checks if a command is piped.
 {
     if(strchr(command,'|')!= NULL){
         return true;
@@ -69,13 +82,10 @@ bool isPiped(char* command)
 }
 
 
-void exec_piped(char* command)
+void exec_piped(char* command)   //Executes the piped commands 
 {
-    
-
-
     int num_pipes = 0;
-    char *pipes[10]; // Adjust the array size as needed
+    char *pipes[10]; // max 10 commands can be piped at a time.
 
     // Tokenize the command string based on pipes
     char *token = strtok(command, "|");
@@ -225,6 +235,7 @@ void view_history(){
 
 
 void view_termination(){
+    
     FILE *file = fopen("termination.txt", "r");
     printf("%s","");
     if (file == NULL) {
@@ -240,36 +251,45 @@ void view_termination(){
 
     // Close the file
     fclose(file);
-
+    
 }
 
-
-static void my_handler(int signum) {
-    if (signum == SIGINT) {
-        printf("\nCaught SIGINT signal\n");
+void my_handler(int signum){
+    if (signum== SIGINT){
+        printf("Terminating. Ctrl C called.");
         view_termination();
-        exit(1); // Exit the program after printing termination info
+        exit(EXIT_SUCCESS);
+
     }
 }
 
-
-
 int main()
 {   
+    int pc=0;
+    
+    struct sigaction sa;
+    memset(&sa,0,sizeof(sa));
+    sa.sa_handler = my_handler;
+    if (sigaction(SIGINT, &sa, NULL)==-1){
+        perror ("sigaction");
+        return 1;
+    }
+
+    
     FILE *history= fopen("history.txt", "w");
     fprintf(history, "%s","NO.      Command\n \n");
     fclose(history);
-    int pc=0;
-    struct sigaction sig;
-    memset(&sig, 0, sizeof(sig));
-    sig.sa_handler = my_handler;
-    sigaction(SIGINT, &sig, NULL);
     
     FILE *termination= fopen("termination.txt", "w");
     fprintf(termination, "%s", "PID      Command          Start Time      Duration:\n\n");
     fclose(termination);
     char input[MAX_INPUT_SIZE];
     while(1){
+       if (is_interrupted) {
+            // Ctrl+C was pressed; continue to the next iteration
+            continue;
+        }
+
         printf("Group-48SimpleShell$ ");
         fgets(input,MAX_INPUT_SIZE,stdin);
         input[strlen(input)-1] = '\0';
@@ -281,6 +301,7 @@ int main()
         if(strcmp(input,"history") == 0){
             view_history();
         }
+       
         else{
             if(strcmp(input,"exit") == 0){
                 printf("Exiting....\n");
@@ -305,4 +326,4 @@ int main()
     return 0;
 }
 
-//issues : duration is always zero. Ctrl C isnt working (program not entering my_handler) , add readme file, do documentations also..uniq command isnt working ... ig aur sab hogaya , 
+//issues : duration is always zero. Ctrl C isnt working (program not entering my_handler) , add readme file, do documentations also.... ig aur sab hogaya , 
