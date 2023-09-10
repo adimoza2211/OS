@@ -107,6 +107,7 @@ void exec_piped(char* command)   //Executes the piped commands
         }
 
         pid_t pid = fork();
+        //time objects for printing during termination
         time_t start_time;
         int status;
         time(&start_time);
@@ -191,6 +192,7 @@ void exec_piped(char* command)   //Executes the piped commands
     wait(NULL);
 }
 
+//checks if there is an & in the command
 bool isAnded(char* command)
 {
     if(strchr(command,'&')!= NULL){
@@ -203,6 +205,7 @@ void exec_anded(char* command)
 {
     char* args[100];
     int i = 0;
+    //for loop for execution
     char* token = strtok(command, "&");
     while(token != NULL)
     {
@@ -254,6 +257,7 @@ void view_termination(){
     
 }
 
+//custom handler for ctrl C
 void my_handler(int signum){
     if (signum== SIGINT){
         printf("Terminating. Ctrl C called.");
@@ -294,6 +298,7 @@ int main()
         fgets(input,MAX_INPUT_SIZE,stdin);
         input[strlen(input)-1] = '\0';
         pc++;
+        //opening history file
         FILE *history= fopen("history.txt", "a");
         fprintf(history, "%d.    ", pc);
         fprintf(history, "%s    \n", input);
@@ -303,6 +308,7 @@ int main()
         }
        
         else{
+            //checking for exit command
             if(strcmp(input,"exit") == 0){
                 printf("Exiting....\n");
                 view_termination();
@@ -325,5 +331,3 @@ int main()
     
     return 0;
 }
-
-//issues : duration is always zero. Ctrl C isnt working (program not entering my_handler) , add readme file, do documentations also.... ig aur sab hogaya , 
