@@ -1,3 +1,5 @@
-Command     Pid     Start Time      Duration:
-ls    34318     1694303464.000000     0.000000    
-ls /home    34318     1694303466.000000     0.000000    
+PID      Command          Start Time      Duration:
+
+42157     ls        1694335234.000     0.000    
+42161     ls /home        1694335237.000     0.000    
+42213     uniq -c file.txt        1694335245.000     0.000    

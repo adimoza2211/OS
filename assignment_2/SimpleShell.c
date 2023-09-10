@@ -13,16 +13,16 @@
 void exec_command(char *command)
 {   
 
-    pid_t pid;
+    pid_t pid=fork();
     int status;
-    pid = fork();
+    
     time_t start_time;
     time(&start_time);
-    pid_t pid_no= getpid();
     FILE *termination=fopen("termination.txt", "a");
-    fprintf(termination, "%d     ", (int)pid_no);
-    fprintf(termination, "%3f     ",(double)start_time);
-    
+    fprintf(termination, "%d     ", (int)pid);
+    fprintf(termination, "%s        ", command);
+    fprintf(termination, "%.3f     ",(double)start_time);
+
     if (pid < 0)
     {
         printf("fork failed\n");
@@ -30,6 +30,8 @@ void exec_command(char *command)
     }
     else if (pid == 0)
     {
+        
+        
         char *args[100];
         int i = 0;
         char *token = strtok(command, " ");
@@ -42,11 +44,6 @@ void exec_command(char *command)
         args[i] = NULL;
         execvp(args[0], args);
         perror("there was a failure in execvp");
-        time_t end_time;
-        time(&end_time);
-        double difference = difftime(end_time, start_time);
-        fprintf(termination, "%3f    \n", (double)difference);
-        fclose(termination);
         exit(1);
     }
     else{
@@ -56,7 +53,7 @@ void exec_command(char *command)
         time_t end_time;
         time(&end_time);
         double difference = difftime(end_time, start_time);
-        fprintf(termination, "%3f    \n", (double)difference);
+        fprintf(termination, "%.3f    \n", (double)difference);
         fclose(termination);
     }
 
@@ -101,8 +98,13 @@ void exec_piped(char* command)
 
         pid_t pid = fork();
         time_t start_time;
+        int status;
         time(&start_time);
-        pid_t pid_no=getpid();
+        fprintf(termination, "%d    ", (int)pid);
+        fprintf(termination,"%s         ",pipes[i]);
+        fprintf(termination, "%3f    ", (double)start_time);
+        
+        
         if (pid <0) {
             perror("Fork failure");
             exit(EXIT_FAILURE);
@@ -127,11 +129,7 @@ void exec_piped(char* command)
             int j = 0;
 
             // Tokenize the individual command based on spaces
-            fprintf(termination,"%s     ",pipes[i]);
-            fprintf(termination, "%d    ", (int)pid_no);
-            fprintf(termination, "%3f    ", (double)start_time);
-            fclose(termination);
-           
+            
             
             token = strtok(pipes[i], " ");
             while (token != NULL) {
@@ -141,18 +139,23 @@ void exec_piped(char* command)
             }
             args[j] = NULL;
 
-            FILE *termination=fopen("termination.txt","a");
-            time_t end_time;
-            time(&end_time);
-            double difference = difftime(end_time, start_time);
-            fprintf(termination, "%3f    \n", (double)difference);
-            fclose(termination);
+            
 
             execvp(args[0], args);
             perror("execvp"); // Handle error if execvp fails
             exit(EXIT_FAILURE);
         } else { // Parent process
             // Close write end of the pipe
+            do {
+            waitpid(pid, &status, WUNTRACED);
+           } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+
+            time_t end_time;
+            time(&end_time);
+            double difference = difftime(end_time, start_time);
+            fprintf(termination, "%.3f    \n", (double)difference);
+            fclose(termination);
             close(pipefd[1]);
             
             // Close the previous pipe's read end
@@ -195,9 +198,7 @@ void exec_anded(char* command)
     {
         args[i] = token;
         i++;
-        FILE *termination= fopen("termination.txt", "a");
-        fprintf(termination, "%s    ", token);
-        fclose(termination);
+        
         exec_command(token);
         token = strtok(NULL,"&");
     }
@@ -225,7 +226,7 @@ void view_history(){
 
 void view_termination(){
     FILE *file = fopen("termination.txt", "r");
-
+    printf("%s","");
     if (file == NULL) {
         perror("Error opening the file");
         exit(1);
@@ -265,7 +266,7 @@ int main()
     sigaction(SIGINT, &sig, NULL);
     
     FILE *termination= fopen("termination.txt", "w");
-    fprintf(termination, "%s", "Command     Pid     Start Time      Duration:\n");
+    fprintf(termination, "%s", "PID      Command          Start Time      Duration:\n\n");
     fclose(termination);
     char input[MAX_INPUT_SIZE];
     while(1){
@@ -294,9 +295,7 @@ int main()
                 exec_anded(input);
             }
             else {
-                FILE *termination= fopen("termination.txt", "a");
-                fprintf(termination, "%s    ", input);
-                fclose(termination);
+                
                 exec_command(input);
             }
             
@@ -306,4 +305,4 @@ int main()
     return 0;
 }
 
-//issues : duration is always zero . Ctrl C isnt working (program not entering my_handler) , add readme file, do documentations also... ig aur sab hogaya , 
+//issues : duration is always zero. Ctrl C isnt working (program not entering my_handler) , add readme file, do documentations also..uniq command isnt working ... ig aur sab hogaya , 
