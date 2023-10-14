@@ -105,7 +105,7 @@ void view_termination(){
 
 void my_handler(int signum){   //handler for CTRL C
     if (signum== SIGINT){
-        printf("Terminating. Ctrl C called.");
+        
         view_termination();
         exit(EXIT_SUCCESS);
 
