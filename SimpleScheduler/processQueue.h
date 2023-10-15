@@ -5,6 +5,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+
 #define MAX_JOBS 100
 #define MAX_INPUT_SIZE 1024
 
@@ -27,8 +32,18 @@ struct Queue {
 };
 struct Queue readyQueue;
 
+struct shm_queue{
+    struct Queue readyQueue;
+    sem_t mutex;
+    sem_t count;
+};
+struct shm_queue* rrq;
+int rq;
+
 void InitialiseQueue(struct Queue* q){
     q->front = q->rear = -1;
+    sem_init(&rrq->mutex,1,1);
+    sem_init(&rrq->mutex,1,0);
 }
 
 void enqueue(struct Queue* queue, struct Job Job) {
@@ -36,7 +51,10 @@ void enqueue(struct Queue* queue, struct Job Job) {
         printf("Queue is full.\n");
         return;
     }
+    sem_wait(&rrq->mutex);
     queue->Jobs[++queue->rear] = Job;
+    sem_post(&rrq->count);
+    sem_post(&rrq->count); 
 }
 
 struct Job dequeue(struct Queue* queue) {
@@ -44,7 +62,11 @@ struct Job dequeue(struct Queue* queue) {
         struct Job dummy;
         return dummy; // Queue is empty
     }
-    return queue->Jobs[++queue->front];
+    sem_wait(&rrq->count);  // Wait if the queue is empty
+    sem_wait(&rrq->mutex);
+    struct Job ret = queue->Jobs[++queue->front];
+    sem_post(&rrq->mutex);
+    return ret;
 }
 
 // Initialize the ready queue
