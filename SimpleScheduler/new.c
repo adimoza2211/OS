@@ -7,11 +7,17 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <string.h>
+#include <semaphore.h>
+
 #include "processQueue.h"
+
 #define MAX_INPUT_SIZE 1024
-#define NUM_PROCESSES 3 // Number of processes to run in round-robin
+#define NUM_PROCESSES 100
 
 int NCPU;
 int TIME_QUANTUM_US;
@@ -22,6 +28,9 @@ struct ProcessInfo {
     struct timespec end_time;
     struct timespec wait_time;
 };
+
+const char* shm_name = "sharedQueue";
+
 
 int current_process = 0;
 pid_t child_pids[NUM_PROCESSES];
@@ -105,7 +114,7 @@ void view_termination(){
 
 void my_handler(int signum){   //handler for CTRL C
     if (signum== SIGINT){
-        
+        printf("Terminating. Ctrl C called.");
         view_termination();
         exit(EXIT_SUCCESS);
 
@@ -142,6 +151,14 @@ int main(int argc, char* argv[]) {
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = TIME_QUANTUM_US;
     timer.it_value = timer.it_interval;
+
+    //setting up shared memory
+    rq = shm_open(shm_name,O_CREAT | O_RDWR, 0666);
+    ftruncate((int)rq,sizeof(readyQueue));
+    printf("working\n");
+    struct Queue* temp = (struct Queue*)mmap(0, sizeof(readyQueue), PROT_READ | PROT_WRITE, MAP_SHARED, (int)rq, 0);
+    
+
 
     while (1) {
         printf("Group-48SimpleScheduler$ ");
@@ -226,4 +243,42 @@ int main(int argc, char* argv[]) {
     //wait time = execution time/time quantum
 
     return 0;
+}
+
+void daemonize_scheduler() {
+
+    pid_t pid = fork();
+    
+    if (pid < 0) {
+        perror("Fork failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    if (pid > 0) {
+        // Exit the parent process
+        exit(EXIT_SUCCESS);
+    }
+    
+    // Create a new session
+    if (setsid() < 0) {
+        perror("setsid failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Change the working directory to the root directory
+    chdir("/");
+    
+    // Close standard file descriptors
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+    
+    for(int i = 0; i < NCPU; i++){
+        struct Job x = dequeue(&readyQueue);
+        kill(x.pid, SIGSTOP);
+        sleep(10);
+        kill(x.pid,SIGCONT);
+        enqueue(&readyQueue,x);      
+    }
+    
 }
