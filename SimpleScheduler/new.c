@@ -35,13 +35,13 @@ const char* shm_name = "sharedQueue";
 int current_process = 0;
 pid_t child_pids[NUM_PROCESSES];
 struct ProcessInfo process_info[NUM_PROCESSES];
+int c=1.5;
 
 
 
 
-void child_process(char* cmd, int current_process) {
+void child_process(char* cmd, int process_no) {
     //record the start time of the process
-    clock_gettime(CLOCK_REALTIME, &process_info[current_process].start_time);
 
     // Set the scheduling policy to SCHED_RR
     struct sched_param param;
@@ -51,6 +51,7 @@ void child_process(char* cmd, int current_process) {
         exit(1);
     }
 
+    clock_gettime(CLOCK_REALTIME, &process_info[process_no].start_time);
     // Execute the shell command
     if (execl("/bin/sh", "sh", "-c", cmd, NULL) == -1) {
         perror("execl");
@@ -114,7 +115,7 @@ void view_termination(){
 
 void my_handler(int signum){   //handler for CTRL C
     if (signum== SIGINT){
-        printf("Terminating. Ctrl C called.");
+        printf("Terminating. Ctrl C called.\n");
         view_termination();
         exit(EXIT_SUCCESS);
 
@@ -168,10 +169,11 @@ int main(int argc, char* argv[]) {
         const char* s = "submit";
         char* found = strstr(input, s);
         if(found){
-            makeSubmit(input, 7);
+            makeSubmit(input, 9);
         }
         NCPU = atoi(argv[1]);
         TIME_QUANTUM_US = atoi(argv[2]);
+        int process_no=0;
         if (job_count < NUM_PROCESSES) {
             pid_t pid = fork();
 
@@ -181,16 +183,18 @@ int main(int argc, char* argv[]) {
             }
 
             if (pid == 0) {
-                child_process(input,current_process);
+                printf("%d\n", process_no);
+                child_process(input,process_no);
+                process_no++;
                 return 0;
             } else {
 
-                clock_gettime(CLOCK_REALTIME, &process_info[current_process].end_time);
+                clock_gettime(CLOCK_REALTIME, &process_info[process_no].end_time);
                 // Calculate and print the execution time
                 double execution_time = 
-                    (double)(process_info[current_process].end_time.tv_sec - process_info[current_process].start_time.tv_sec) +
-                    (double)(process_info[current_process].end_time.tv_nsec - process_info[current_process].start_time.tv_nsec) / 1e9;
-                double wait_time= (double) (execution_time/ TIME_QUANTUM_US);
+                    (double)(process_info[process_no].end_time.tv_sec - process_info[process_no].start_time.tv_sec) +
+                    (double)(process_info[process_no].end_time.tv_nsec - process_info[process_no].start_time.tv_nsec) / 1e9;
+                double wait_time= (double) (execution_time/ (TIME_QUANTUM_US * c));
                
 
                 FILE *termination=fopen("termination.txt", "a");
