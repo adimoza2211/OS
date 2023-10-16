@@ -120,7 +120,11 @@ void my_handler(int signum){   //handler for CTRL C
         exit(EXIT_SUCCESS);
 
     }
+    //closing shared memory
+    munmap(rrq,sizeof(rq));
+    shm_unlink(shm_name);
 }  
+
 
 
 int main(int argc, char* argv[]) {
