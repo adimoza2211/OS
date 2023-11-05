@@ -44,8 +44,6 @@ Elf32_Phdr returnPtype(void* fault_address)
 
 
 
-
-
 void sigsegv_handler(int signum, siginfo_t* info, void* context){
     // fault_address = (void*)malloc(sizeof(Elf32_Phdr));
     numSegfaults++;
@@ -88,7 +86,7 @@ void load_and_run_elf(char** exe)
 {
     struct sigaction sa;
     sa.sa_sigaction = sigsegv_handler;
-    sa.sa_flags = SA_SIGINFO;
+    sa.sa_flags = SA_SIGINFO;  
     if(sigaction(SIGSEGV,&sa,NULL) == -1){
         perror("sigaction");
         return ;
