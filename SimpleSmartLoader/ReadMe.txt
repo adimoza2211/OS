@@ -10,7 +10,7 @@ Functionalities of the SimpleSmartLoader
 
 5. No of pages to be allocated for the segment is calculated using PAGE_SIZE.
 
-6. Find the offset and alloate memory for segment using mmap.
+6. Find the offset and allocate memory for segment using mmap.
 
 7. Increment the global page count and append the phdr in an array for future cleanup.
 
@@ -29,4 +29,7 @@ Github repo link:https://github.com/adimoza2211/OS.git
 
 Contributions:
 
+Aditya Moza: Running the executable , finding fault address and no of pages to be allocated for each segment.
+Aarya Khandelwal: Allocate memory for the segment using mmap and  calculate fragmentation.
 
+Bonus part done by both.
