@@ -66,8 +66,8 @@ void parallel_for(int low, int high,std::function<void(int)>&&lambda, int numThr
 
   //calculating and printing execution time
   time(&end);
-  int exec_time= difftime(end,start) * 1000;
-  printf("Execution time for parellel_for is: %d  milliseconds \n", exec_time);
+  double exec_time= difftime(end,start) * 1000;
+  printf("Execution time for parellel_for is: %.2f milliseconds \n", exec_time);
 } 
 
 
@@ -108,8 +108,8 @@ void parallel_for(int low1, int high1, int low2, int high2,std::function<void(in
 
   //calculating and printing execution time
   time(&end);
-  int exec_time= difftime(end,start) * 1000;
-  printf("Execution time for parellel_for is: %d  milliseconds \n", exec_time);
+  double exec_time= difftime(end,start) * 1000;
+  printf("Execution time for parellel_for is: %.2f  milliseconds \n", exec_time);
 }
 
 void* matrix_multiply_threaded(void* ptr) 
